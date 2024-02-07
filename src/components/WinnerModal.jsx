@@ -4,6 +4,7 @@ export function WinnerModal({ winner, resetGame }) {
   if (winner === null) return;
 
   const winnerText = false ? "Empate" : "Gano";
+  // const winnerText = winner === false ? "Empate" : "Gano";
   return (
     <section className="winner">
       <div className="text">
