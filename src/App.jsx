@@ -1,47 +1,38 @@
 import { useState } from "react";
-import confetti from "canvas-confetti";
 import "./App.css";
-
-const TURNS = {
-  x: "x",
-  o: "o",
-};
-
-const Square = ({ children, updateBoard, isSelected, index }) => {
-  const className = `square ${isSelected ? "is-selected" : ""}`;
-
-  const handleClick = () => {
-    if (index !== null) {
-      updateBoard(index);
-    }
-  };
-  return (
-    <div onClick={handleClick} className={className}>
-      {children}
-    </div>
-  );
-};
+import { Square } from "./components/Square";
+import { TURNS } from "./constants";
+import { checkEndBoard, checkWinnerFrom } from "./logic/board";
+import confetti from "canvas-confetti";
+import { WinnerModal } from "./components/WinnerModal";
 
 function App() {
-  const WINNER_COMBOS = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-
   // Tiene un estado se vuelve a renderizar cada que cambia ese estado
 
   const boardV = Array(9).fill(null);
-  const [board, setBoard] = useState(boardV);
-  const [winner, setWinner] = useState(null);
+  const [board, setBoard] = useState(() => {
+    const boardFromLocalStorage = window.localStorage.getItem("board");
+    return boardFromLocalStorage ? JSON.parse(boardFromLocalStorage) : boardV;
+  });
+
   /* Turn */
 
-  const [turn, setTurn] = useState(TURNS.x);
+  const [turn, setTurn] = useState(() => {
+    const turnFromLocalStorage = window.localStorage.getItem("turn");
+    console.log(turnFromLocalStorage);
+    if (turnFromLocalStorage) return turnFromLocalStorage;
+    return TURNS.x;
+  });
+
+  const [winner, setWinner] = useState(null);
+
+  const resetGame = () => {
+    setBoard(boardV);
+    setWinner(null);
+    setTurn(TURNS.x);
+    window.localStorage.removeItem("board");
+    window.localStorage.removeItem("turn");
+  };
 
   const updateBoard = (index) => {
     const newTurn = turn === TURNS.x ? TURNS.o : TURNS.x;
@@ -58,6 +49,10 @@ function App() {
     /* Act turno */
     setTurn(newTurn);
 
+    /* LocalStorage */
+    window.localStorage.setItem("board", JSON.stringify(newBoard));
+    window.localStorage.setItem("turn", newTurn);
+
     const newWinner = checkWinnerFrom(newBoard);
     if (newWinner) {
       confetti();
@@ -67,39 +62,10 @@ function App() {
     }
   };
 
-  const checkEndBoard = (newBoard) => {
-    return newBoard.every((square) => square !== null);
-  };
-
-  const checkWinnerFrom = (boardToCheck) => {
-    // revisamos todas las combinaciones ganadoras
-    // para ver si X u O ganó
-
-    for (const combo of WINNER_COMBOS) {
-      const [a, b, c] = combo;
-      if (
-        boardToCheck[a] &&
-        boardToCheck[a] === boardToCheck[b] &&
-        boardToCheck[a] === boardToCheck[c]
-      ) {
-        return boardToCheck[a];
-      }
-    }
-    // si no hay ganador
-    return null;
-  };
-
-  const resetGame = () => {
-    setBoard(boardV);
-    setWinner(null);
-    setTurn(TURNS.x);
-  };
-
   return (
     <>
       <main className="board">
         <h1>Tic tac toe</h1>
-        <button onClick={resetGame}>Empezar de nuevo</button>
 
         <section className="game">
           {board.map((_, index) => {
@@ -117,24 +83,9 @@ function App() {
           <Square isSelected={turn === TURNS.x}>{TURNS.x}</Square>
           <Square isSelected={turn === TURNS.o}>{TURNS.o}</Square>
         </section>
-
-        {winner !== null && (
-          <section className="winner">
-            <div className="text">
-              <h2>{winner === false ? "Empate" : "Gano"}</h2>
-
-              <header className="win">
-                {winner && <Square>{winner}</Square>}
-                {/* Condicional en linea */}
-              </header>
-
-              <footer>
-                <button onClick={resetGame}>Empezar de nuevo</button>
-              </footer>
-            </div>
-          </section>
-        )}
       </main>
+
+      <WinnerModal winner={winner} resetGame={resetGame} />
     </>
   );
 }
