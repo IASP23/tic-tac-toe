@@ -10,19 +10,11 @@ function App() {
   // Tiene un estado se vuelve a renderizar cada que cambia ese estado
 
   const boardV = Array(9).fill(null);
-  const [board, setBoard] = useState(() => {
-    const boardFromLocalStorage = window.localStorage.getItem("board");
-    return boardFromLocalStorage ? JSON.parse(boardFromLocalStorage) : boardV;
-  });
+  const [board, setBoard] = useState(boardV);
 
   /* Turn */
 
-  const [turn, setTurn] = useState(() => {
-    const turnFromLocalStorage = window.localStorage.getItem("turn");
-    console.log(turnFromLocalStorage);
-    if (turnFromLocalStorage) return turnFromLocalStorage;
-    return TURNS.x;
-  });
+  const [turn, setTurn] = useState(TURNS.x);
 
   const [winner, setWinner] = useState(null);
 
