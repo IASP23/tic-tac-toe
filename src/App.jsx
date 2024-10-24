@@ -13,6 +13,7 @@ function App() {
   const [board, setBoard] = useState(boardV);
 
   /* Turn */
+  //Credentials
 
   const [turn, setTurn] = useState(TURNS.x);
 
